@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <%- include header.ejs %>
+    <title>Blog List</title>
+  </head>
+  <body>
+    <h1>Posts of <%= user %></h1>
+    <% for(let i = 0; i < data.length; i++) { %>
+        <div class="row">
+            <div class="col s12 m7">
+                <div class="card">
+                    <span class="card-title"><%- data[i].title %></span>
+                    <div class="card-content">
+                        <p><%- data[i].body %></p>
+                    </div>
+                    <div class="card-action">
+                        <a href="#">This is a link</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <% } %>
+    <%- include footer.ejs %>
+  </body>
+</html>
