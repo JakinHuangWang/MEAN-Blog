@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "nodemon ./bin/www"
+    "start": "nodemon ./bin/www --watch routes/* -e"
   },
   "dependencies": {
     "commonmark": "^0.29.3",
