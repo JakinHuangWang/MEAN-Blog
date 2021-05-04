@@ -2,6 +2,11 @@
 const MongoClient = require('mongodb').MongoClient;
 const options = { useUnifiedTopology: true, writeConcern: { j: true } };
 
+// import commonmark library
+const commonmark = require('commonmark');
+const reader = new commonmark.Parser();
+const writer = new commonmark.HtmlRenderer();
+
 const express = require('express');
 const router = express.Router();
 
@@ -22,8 +27,15 @@ router.get('/:username/:postid', (req, res, next) => {
         "username" : username, 
         "postid": postid
     }).toArray((err, docs) => {
-        console.log(docs);
-        res.render('blog', { title: docs[0].title, body: docs[0].body });
+        if (docs.length == 0) {
+            res.sendStatus(404);
+        } else {
+            var parsed = reader.parse(docs[0].title);
+            const title = writer.render(parsed);
+            parsed = reader.parse(docs[0].body);
+            const body = writer.render(parsed);
+            res.render('blog', { title: title, body: body });
+        }
     });
 });
 
@@ -31,8 +43,16 @@ router.get('/:username/:postid', (req, res, next) => {
 router.get('/:username', (req, res, next) => {
     const posts = client.db('BlogServer').collection('Posts');
     const username = req.params.username;
+    const start = req.query.start;
     posts.find({"username" : username}).toArray((err, docs) => {
-        res.render('blogList', { user: username, data: docs });
+        if (docs.length == 0) {
+            return res.sendStatus(404);
+        }
+        if (start == null ) {
+            res.render('blogList', { user: username, data: docs, start: 0});
+        } else {
+            res.render('blogList', { user: username, data: docs, start: parseInt(start) });
+        }
     });
 });
 
