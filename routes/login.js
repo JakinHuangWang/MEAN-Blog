@@ -13,27 +13,49 @@ const client = new MongoClient(url, options);
 
 client.connect();
 
+// import bcrypt package
+const bcrypt = require('bcryptjs');
+
 /* GET users listing. */
 router.get('/', function(req, res, next) {
     const redirect = req.query.redirect;
-    console.log(req.query);
     if (redirect == null)
-        res.render('login', { redirect : false });
+        res.render('login', { redirect : "" });
     else 
-        res.render('login', { redirect : true });
+        res.render('login', { redirect : redirect });
     
 });
 
 router.post('/', function(req, res, next) {
-    const username = req.params.username;
-    const password = req.params.password;
+    const username = req.body.username;
+    const password = req.body.password;
+    const redirect = req.body.redirect;
+    const users = client.db('BlogServer').collection('Users');
 
     if (username == null || password == null) {
-        res.status(401).send("UNAUTHORIZED");
+        return res.status(401).send("UNAUTHORIZED");
     } else {
 
+        users.findOne({"username" : username}, function(err, docs) {
+            if (err) throw err;
+            if (docs == null) {
+                res.status(401).render('login', { redirect : "" });
+                return;
+            } else {
+                const userCheck = bcrypt.compareSync(password, docs.password);
+                
+                // Set authentication session cookie in JWT
+                if (!userCheck) {
+                    return res.status(401).render('login', { redirect : "" });
+                } else if (redirect == "") {
+                    return res.status(200).send("SUCCESS");
+                } else {
+                    return res.redirect(301, redirect);
+                }
+            }
+            
+        })
     }
-    res.status(200).send("SUCCESS");
   })
 
 module.exports = router;
