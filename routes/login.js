@@ -16,6 +16,10 @@ client.connect();
 // import bcrypt package
 const bcrypt = require('bcryptjs');
 
+// import json web token
+const jwt = require('jsonwebtoken');
+
+
 /* GET users listing. */
 router.get('/', function(req, res, next) {
     const redirect = req.query.redirect;
@@ -43,14 +47,28 @@ router.post('/', function(req, res, next) {
                 return;
             } else {
                 const userCheck = bcrypt.compareSync(password, docs.password);
-                
+    
                 // Set authentication session cookie in JWT
                 if (!userCheck) {
                     return res.status(401).render('login', { redirect : "" });
-                } else if (redirect == "") {
-                    return res.status(200).send("SUCCESS");
                 } else {
-                    return res.redirect(301, redirect);
+                    const token = jwt.sign({
+                            "exp" : Math.round(Date.now() / 1000) + 7200,
+                            "usr" : username
+                        }, 
+                            "C-UFRaksvPKhx1txJYFcut3QGxsafPmwCY6SCly3G6c",
+                        {
+                            header: {
+                                "alg": "HS256",
+                                "typ": "JWT"
+                            }
+                        });
+                    res.cookie("jwt", token);
+                    if (redirect == "") {
+                        return res.status(200).send("SUCCESS");
+                    } else {
+                        return res.redirect(301, redirect);
+                    }
                 }
             }
             
