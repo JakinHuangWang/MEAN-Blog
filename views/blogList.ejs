@@ -6,31 +6,33 @@
   </head>
   <body>
     <div class="wrapper">
-      <% if (start >= 5)  { %>
+      <% if (start > 5)  { %>
         <a href="/blog/<%- user %>?start=<%- start - 5 %>" class="waves-effect" id="previous_link"><i class="material-icons">chevron_left</i></a>
+      <% } else if (start > 1) { %>
+        <a href="/blog/<%- user %>?start=1" class="waves-effect" id="previous_link"><i class="material-icons">chevron_left</i></a>
       <% } else { %>
         <a href="/blog/<%- user %>?start=<%- start - 5 %>" class="waves-effect disabled" id="previous_link"><i class="material-icons">chevron_left</i></a>
       <% } %>
       <div style="width: 100%;">
-        <h3>Posts of <%= user %></h3>
-        <% for(let i = start; i < start + 5 && i < data.length; i++) { %>
-            <div class="row">
-                <div class="col s12 m10 l8">
+        <h3 class="center-align">Posts of <%= user %></h3>
+        <% for(let i = start; i < start + 5 && i <= data.length; i++) { %>
+            <div class="row" style=" display: flex; justify-content: center;">
+                <div class="col s12 m10 l8" style="margin-left: 0;">
                     <div class="card teal-text lighten-3 hoverable">
                         <div class="card-content">
-                          <span class="card-title">Post <%- data[i].postid %></span>
-                          <div>Created: <%- (new Date(data[i].created)).toLocaleDateString() %></div>
-                          <div>Modified: <%- (new Date(data[i].modified)).toLocaleDateString() %></div>
+                          <span class="card-title">Post <%- data[i - 1].postid %></span>
+                          <div>Created: <%- (new Date(data[i - 1].created)).toLocaleDateString() %></div>
+                          <div>Modified: <%- (new Date(data[i - 1].modified)).toLocaleDateString() %></div>
                         </div>
                         <div class="card-action">
-                            <a href="/blog/<%- user %>/<%- data[i].postid %>">LINK</a>
+                            <a href="/blog/<%- user %>/<%- data[i - 1].postid %>">LINK</a>
                         </div>
                     </div>
                 </div>
             </div>
         <% } %>
       </div>
-      <% if (start + 5 < data.length)  { %>
+      <% if (start <= data.length - 5)  { %>
         <a href="/blog/<%- user %>?start=<%- start + 5 %>" class="waves-effect" id="next_link"><i class="material-icons">chevron_right</i></a>
       <% } else { %>
         <a href="/blog/<%- user %>?start=<%- start + 5 %>" class="waves-effect disabled" id="next_link"><i class="material-icons">chevron_right</i></a>

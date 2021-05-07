@@ -28,13 +28,13 @@ router.get('/:username/:postid', (req, res, next) => {
         "postid": postid
     }).toArray((err, docs) => {
         if (docs.length == 0) {
-            res.sendStatus(404);
+           return res.sendStatus(404).send("NOT FOUND");
         } else {
             var parsed = reader.parse(docs[0].title);
             const title = writer.render(parsed);
             parsed = reader.parse(docs[0].body);
             const body = writer.render(parsed);
-            res.render('blog', { title: title, body: body });
+            return res.status(200).render('blog', { title: title, body: body });
         }
     });
 });
@@ -42,18 +42,34 @@ router.get('/:username/:postid', (req, res, next) => {
 /* Get the first 5 blog posts from a user */
 router.get('/:username', (req, res, next) => {
     const posts = client.db('BlogServer').collection('Posts');
+    const users = client.db('BlogServer').collection('Users');
     const username = req.params.username;
     const start = req.query.start;
-    posts.find({"username" : username}).toArray((err, docs) => {
-        if (docs.length == 0) {
-            return res.sendStatus(404);
-        }
-        if (start == null ) {
-            res.render('blogList', { user: username, data: docs, start: 0});
+    var startNum;
+
+    if (start == null){
+        startNum = 1;
+    } else {
+        startNum = parseInt(start);
+    }
+
+    users.findOne({"username" : username}, (err, docs) => {
+        if(err) throw err;
+        if (docs == null) {
+            return res.status(404).send("NOT FOUND");
+        } else if (startNum > docs.maxid){
+            return res.status(404).send("NOT FOUND");
         } else {
-            res.render('blogList', { user: username, data: docs, start: parseInt(start) });
+            posts.find({"username" : username})
+                .sort({ postid: 1 })
+                .toArray((err, docs) => {
+                    if(err) throw err;
+                    return res.status(200).render('blogList', { user: username, data: docs, start: startNum });
+                });
         }
-    });
+    })
+
+    
 });
 
 module.exports = router;

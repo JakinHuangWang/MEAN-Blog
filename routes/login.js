@@ -23,11 +23,7 @@ const jwt = require('jsonwebtoken');
 /* GET users listing. */
 router.get('/', function(req, res, next) {
     const redirect = req.query.redirect;
-    if (redirect == null)
-        res.render('login', { redirect : "" });
-    else 
-        res.render('login', { redirect : redirect });
-    
+    res.render('login', { redirect : redirect });
 });
 
 router.post('/', function(req, res, next) {
@@ -36,6 +32,7 @@ router.post('/', function(req, res, next) {
     const redirect = req.body.redirect;
     const users = client.db('BlogServer').collection('Users');
 
+    console.log(redirect);
     if (username == null || password == null) {
         return res.status(401).send("UNAUTHORIZED");
     } else {
@@ -64,8 +61,8 @@ router.post('/', function(req, res, next) {
                             }
                         });
                     res.cookie("jwt", token);
-                    if (redirect == "") {
-                        return res.status(200).send("SUCCESS");
+                    if (redirect == null || redirect.length == 0) {
+                        return res.status(200).send("AUTHENTICATION SUCCESSFUL");
                     } else {
                         return res.redirect(301, redirect);
                     }
@@ -74,6 +71,6 @@ router.post('/', function(req, res, next) {
             
         })
     }
-  })
+});
 
 module.exports = router;

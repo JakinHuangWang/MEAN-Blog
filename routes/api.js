@@ -84,7 +84,7 @@ router.post('/posts', function(req, res, next) {
     const username = req.body.username;
     const postid = req.body.postid;
     const title = req.body.title;
-    const body = req.body.title;
+    const body = req.body.body;
 
     if (req.cookies == null || req.cookies.jwt == null) {
         return res.status(401).send("UNAUTHORIZED");
@@ -109,20 +109,19 @@ router.post('/posts', function(req, res, next) {
                 if (parseInt(postid) == 0) {
                     users.findOneAndUpdate({username: username }, {$inc: { maxid : 1 }}, {returnNewDocument: true}, (err, docs) => {
                         if(err) throw err;
-                        console.log(docs);
                         posts.insertOne({
                             username: username,
-                            postid: docs.value.maxid,
+                            postid: docs.value.maxid + 1,
                             title: title,
                             body: body,
                             created: now,
                             modified: now
-                        }, function(err, docs) {
+                        }, function(err, new_doc) {
                             if(err) return err;
                             return res.status(201).json({
-                                postid: docs.postid,
-                                created: docs.created,
-                                modified: docs.modified
+                                postid: new_doc.ops[0].postid,
+                                created: new_doc.ops[0].created,
+                                modified: new_doc.ops[0].modified
                             })
                         });
                     });
@@ -136,13 +135,13 @@ router.post('/posts', function(req, res, next) {
                             body: body,
                             modified: now
                         }
-                    }, (err, docs) => {
-                        if (err) throw err;
+                    }, {returnNewDocument: true}, (err, docs) => {
                         console.log(docs);
+                        if (err) throw err;
                         if (docs.value == null) {
                             return res.status(404).send("NOT FOUND");
                         } else {
-                            return res.status(200).send("OK");
+                            return res.status(200).json({ modified: docs.value.modified});
                         }
                     })
                 } else {
@@ -160,9 +159,7 @@ router.post('/posts', function(req, res, next) {
                 //     }
                 // });
             }
-        }
-
-        
+        }        
     }
 });
 
